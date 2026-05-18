@@ -10,6 +10,7 @@ from django.db import transaction
 from datetime import timedelta
 from django.utils.dateparse import parse_date
 from django.utils import timezone
+from django.core.paginator import Paginator
 
 from .models import Book, Review, Loan, LoanRequest
 
@@ -400,21 +401,50 @@ def update_isbn_status(request):
 
 @user_passes_test(is_library_manager)
 def loan_request_list(request):
-    loan_requests = LoanRequest.objects.select_related(
-        "user",
-        "book"
-    ).order_by("-requested_at")
+    q = (request.GET.get("q") or "").strip()
 
-    active_loans = Loan.objects.select_related(
+    active_loans_qs = Loan.objects.select_related(
         "user",
         "book"
     ).filter(
         returned_at__isnull=True
     ).order_by("-loaned_at")
 
+    loan_requests_qs = LoanRequest.objects.select_related(
+        "user",
+        "book"
+    ).order_by("-requested_at")
+
+    if q:
+        active_loans_qs = active_loans_qs.filter(
+            Q(user__username__icontains=q) |
+            Q(user__first_name__icontains=q) |
+            Q(book__title__icontains=q) |
+            Q(book__author__icontains=q) |
+            Q(book__call_number__icontains=q)
+        )
+
+        loan_requests_qs = loan_requests_qs.filter(
+            Q(user__username__icontains=q) |
+            Q(user__first_name__icontains=q) |
+            Q(book__title__icontains=q) |
+            Q(book__author__icontains=q) |
+            Q(book__call_number__icontains=q)
+        )
+
+    active_paginator = Paginator(active_loans_qs, 10)
+    request_paginator = Paginator(loan_requests_qs, 10)
+
+    active_page_number = request.GET.get("active_page")
+    request_page_number = request.GET.get("request_page")
+
+    active_loans = active_paginator.get_page(active_page_number)
+    loan_requests = request_paginator.get_page(request_page_number)
+
     return render(request, "accounts/loan_request_list.html", {
-        "loan_requests": loan_requests,
         "active_loans": active_loans,
+        "loan_requests": loan_requests,
+        "query": q,
     })
 
 @require_POST

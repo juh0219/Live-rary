@@ -107,11 +107,40 @@
     .request-actions button {
       width: 100%;
     }
+    .manager-search {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+  }
+
+    .manager-search-input {
+      flex: 1;
+      height: 40px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      padding: 0 14px;
+      font-size: 15px;
+      background: #fff;
+    }
   }
 </style>
 
 <main class="container">
 <h1 class="page-title">도서위원 책 관리</h1>
+  <form method="get" class="manager-search">
+  <input
+    type="text"
+    name="q"
+    value="{{ query }}"
+    placeholder="학생 이름, 학번, 책 제목, 저자, 청구기호 검색"
+    class="manager-search-input"
+  >
+  <button type="submit" class="action-btn">검색</button>
+
+  {% if query %}
+    <a href="{% url 'loan_request_list' %}" class="action-btn reset-btn">초기화</a>
+  {% endif %}
+</form>
 
 <h2 class="page-title" style="font-size:20px; margin-top:0;">현재 대출 중인 도서</h2>
 
@@ -142,6 +171,25 @@
     </div>
   {% endfor %}
 </div>
+{% if active_loans.paginator.num_pages > 1 %}
+  <div class="pagination">
+    {% if active_loans.has_previous %}
+      <a class="page-link" href="?q={{ query }}&active_page={{ active_loans.previous_page_number }}&request_page={{ loan_requests.number }}">이전</a>
+    {% endif %}
+
+    {% for num in active_loans.paginator.page_range %}
+      {% if active_loans.number == num %}
+        <span class="page-link current">{{ num }}</span>
+      {% else %}
+        <a class="page-link" href="?q={{ query }}&active_page={{ num }}&request_page={{ loan_requests.number }}">{{ num }}</a>
+      {% endif %}
+    {% endfor %}
+
+    {% if active_loans.has_next %}
+      <a class="page-link" href="?q={{ query }}&active_page={{ active_loans.next_page_number }}&request_page={{ loan_requests.number }}">다음</a>
+    {% endif %}
+  </div>
+{% endif %}
 
 <h2 class="page-title" style="font-size:20px; margin-top:28px;">대출 신청 리스트</h2>
 
@@ -177,6 +225,25 @@
         </div>
       {% endfor %}
     </div>
+  {% if loan_requests.paginator.num_pages > 1 %}
+  <div class="pagination">
+    {% if loan_requests.has_previous %}
+      <a class="page-link" href="?q={{ query }}&active_page={{ active_loans.number }}&request_page={{ loan_requests.previous_page_number }}">이전</a>
+    {% endif %}
+
+    {% for num in loan_requests.paginator.page_range %}
+      {% if loan_requests.number == num %}
+        <span class="page-link current">{{ num }}</span>
+      {% else %}
+        <a class="page-link" href="?q={{ query }}&active_page={{ active_loans.number }}&request_page={{ num }}">{{ num }}</a>
+      {% endif %}
+    {% endfor %}
+
+    {% if loan_requests.has_next %}
+      <a class="page-link" href="?q={{ query }}&active_page={{ active_loans.number }}&request_page={{ loan_requests.next_page_number }}">다음</a>
+    {% endif %}
+  </div>
+{% endif %}
   </section>
 </main>
 {% endblock %}

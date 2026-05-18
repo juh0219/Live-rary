@@ -386,10 +386,16 @@
     </div>
     <div class="bottom-right">
       <span class="stock">재고 수: <span id="stockValue">{{ book.stock }}</span></span>
-      <form method="post" action="{% url 'loan_book' pk=book.pk %}" style="margin:0;">
-          {% csrf_token %}
-          <button class="loan-btn" type="submit">대출</button>
-      </form>
+{% if user.is_authenticated and user.username == "manager" %}
+  <button class="loan-btn" type="button" disabled>도서위원</button>
+{% elif book.stock > 0 %}
+  <form method="post" action="{% url 'loan_book' pk=book.pk %}" style="margin:0;">
+      {% csrf_token %}
+      <button class="loan-btn" type="submit">대출 신청</button>
+  </form>
+{% else %}
+  <button class="loan-btn" type="button" disabled>대출 불가</button>
+{% endif %}
     </div>
   </div>
 </footer>

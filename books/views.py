@@ -4,14 +4,14 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.db.models import Q, F, Count, Max
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.db import transaction
 from datetime import timedelta
 from django.utils.dateparse import parse_date
 from django.utils import timezone
 
-from .models import Book, Review, Loan
+from .models import Book, Review, Loan, LoanRequest
 
 
 
@@ -33,6 +33,9 @@ def get_tags_list(request, key):
     """GET 파라미터에서 쉼표로 구분된 값을 리스트로 변환"""
     val = request.GET.get(key, '')
     return [v.strip() for v in val.split(',') if v.strip()]
+
+def is_library_manager(user):
+    return user.is_authenticated and user.username == "manager"
 
 
 # --- 핵심 뷰 함수 ---
@@ -316,29 +319,70 @@ def review_add(request, pk):
 
 @transaction.atomic
 def loan_book(request, pk):
-    # 1. 비로그인 사용자 처리
+    #  비로그인 사용자 처리
     if not request.user.is_authenticated:
-        messages.error(request, "로그인이 필요합니다.")  # 메시지 굽기
-        return redirect(f"/accounts/login/?next=/books/{pk}/")  # 로그인 후 다시 이 책으로 오게 함
+        messages.error(request, "로그인이 필요합니다.")
+        return redirect(f"/accounts/login/?next=/books/{pk}/")
 
     if request.method != "POST":
         return redirect("book_detail", pk=pk)
+
     book = get_object_or_404(Book, pk=pk)
-    active_count = Loan.objects.filter(user=request.user, returned_at__isnull=True).count()
-    if active_count >= 2:
-        messages.error(request, "이미 대출 가능한 최대 권수(2권)를 채웠습니다.")
+
+    # 도서위원 계정 구분
+    if request.user.username == "manager":
+        messages.error(request, "도서위원 계정으로는 대출 신청할 수 없습니다.")
         return redirect("book_detail", pk=pk)
-    already = Loan.objects.filter(user=request.user, book=book, returned_at__isnull=True).exists()
-    if already:
+
+    # 이미 실제 대출 중인 권수
+    active_count = Loan.objects.filter(
+        user=request.user,
+        returned_at__isnull=True
+    ).count()
+
+    # 아직 처리되지 않은 대출 신청 권수
+    pending_count = LoanRequest.objects.filter(
+        user=request.user
+    ).count()
+
+    if active_count + pending_count >= 2:
+        messages.error(request, "대출 및 대출 신청은 최대 2권까지만 가능합니다.")
+        return redirect("book_detail", pk=pk)
+
+    # 이미 이 책을 대출 중인지 확인
+    already_loaned = Loan.objects.filter(
+        user=request.user,
+        book=book,
+        returned_at__isnull=True
+    ).exists()
+
+    if already_loaned:
         messages.info(request, "이미 이 책을 대출 중입니다.")
         return redirect("book_detail", pk=pk)
-    updated = Book.objects.filter(pk=book.pk, stock__gt=0).update(stock=F("stock") - 1)
-    if updated == 0:
-        messages.error(request, "재고가 없어 대출할 수 없습니다.")
+
+    # 이미 이 책을 신청했는지 확인
+    already_requested = LoanRequest.objects.filter(
+        user=request.user,
+        book=book
+    ).exists()
+
+    if already_requested:
+        messages.info(request, "이미 이 책을 대출 신청했습니다.")
         return redirect("book_detail", pk=pk)
-    Loan.objects.create(user=request.user, book=book)
-    messages.success(request, "대출이 완료되었습니다.")
-    return redirect("my_page")
+
+    # 재고가 없으면 신청 자체를 막음
+    if book.stock <= 0:
+        messages.error(request, "재고가 없어 대출 신청할 수 없습니다.")
+        return redirect("book_detail", pk=pk)
+
+    # 실제 대출이 아니라 신청만 생성
+    LoanRequest.objects.create(
+        user=request.user,
+        book=book
+    )
+
+    messages.success(request, "대출 신청이 완료되었습니다. 도서위원 확인 후 대출 처리됩니다.")
+    return redirect("book_detail", pk=pk)
 
 
 @require_POST
@@ -353,3 +397,76 @@ def update_isbn_status(request):
 
         return JsonResponse({'ok': True, 'updated': updated_count > 0})
     return JsonResponse({'ok': False}, status=400)
+
+@user_passes_test(is_library_manager)
+def loan_request_list(request):
+    loan_requests = LoanRequest.objects.select_related("user", "book").order_by("-requested_at")
+
+    return render(request, "accounts/loan_request_list.html", {
+        "loan_requests": loan_requests
+    })
+
+@require_POST
+@user_passes_test(is_library_manager)
+@transaction.atomic
+def complete_loan_request(request, request_id):
+    loan_request = get_object_or_404(
+        LoanRequest.objects.select_related("user", "book"),
+        pk=request_id
+    )
+
+    user = loan_request.user
+    book = loan_request.book
+
+    # 신청자가 이미 2권을 대출 중이면 완료 처리 불가
+    active_count = Loan.objects.filter(
+        user=user,
+        returned_at__isnull=True
+    ).count()
+
+    if active_count >= 2:
+        messages.error(request, f"{user.username} 사용자는 이미 최대 대출 권수(2권)를 채웠습니다.")
+        return redirect("loan_request_list")
+
+    # 같은 책을 이미 대출 중이면 완료 처리 불가
+    already_loaned = Loan.objects.filter(
+        user=user,
+        book=book,
+        returned_at__isnull=True
+    ).exists()
+
+    if already_loaned:
+        messages.error(request, "해당 사용자는 이미 이 책을 대출 중입니다.")
+        loan_request.delete()
+        return redirect("loan_request_list")
+
+    # 재고 감소
+    updated = Book.objects.filter(
+        pk=book.pk,
+        stock__gt=0
+    ).update(stock=F("stock") - 1)
+
+    if updated == 0:
+        messages.error(request, "재고가 없어 대출 완료 처리할 수 없습니다.")
+        return redirect("loan_request_list")
+
+    # 실제 대출 데이터 생성
+    Loan.objects.create(
+        user=user,
+        book=book
+    )
+
+    # 신청 데이터 삭제
+    loan_request.delete()
+
+    messages.success(request, f"{user.username}님의 '{book.title}' 대출을 완료 처리했습니다.")
+    return redirect("loan_request_list")
+
+@require_POST
+@user_passes_test(is_library_manager)
+def delete_loan_request(request, request_id):
+    loan_request = get_object_or_404(LoanRequest, pk=request_id)
+    loan_request.delete()
+
+    messages.success(request, "대출 신청을 삭제했습니다.")
+    return redirect("loan_request_list")

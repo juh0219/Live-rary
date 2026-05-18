@@ -88,6 +88,29 @@ class Review(models.Model):
         uname = "익명" if self.is_anonymous or not self.user else self.user.username
         return f"[{self.rating}★] {uname}: {self.content[:20]}..."
 
+class LoanRequest(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="loan_requests",
+        verbose_name="신청자"
+    )
+    book = models.ForeignKey(
+        "books.Book",
+        on_delete=models.CASCADE,
+        related_name="loan_requests",
+        verbose_name="신청 도서"
+    )
+    requested_at = models.DateTimeField("대출 신청일", auto_now_add=True)
+
+    class Meta:
+        ordering = ["-requested_at"]
+        verbose_name = "대출 신청"
+        verbose_name_plural = "대출 신청"
+
+    def __str__(self):
+        return f"{self.user} - {self.book} 대출 신청"
+
 class Loan(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="loans")
     book = models.ForeignKey("books.Book", on_delete=models.CASCADE, related_name="loans")

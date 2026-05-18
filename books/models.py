@@ -1,7 +1,9 @@
 from django.db import models
 from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
-from django.db.models import Avg
+from django.db.models import Avg, F
+from django.db.models.signals import pre_save, pre_delete
+from django.dispatch import receiver
 from django.utils import timezone
 
 
@@ -128,3 +130,37 @@ class Loan(models.Model):
     @property
     def is_active(self):
         return self.returned_at is None
+
+@receiver(pre_save, sender=Loan)
+def restore_stock_when_loan_returned(sender, instance, **kwargs):
+    """
+    admin이나 일반 view에서 Loan.returned_at이
+    None -> 날짜 값으로 바뀌면 재고를 1 증가시킨다.
+    """
+    if not instance.pk:
+        return
+
+    old_loan = sender.objects.filter(pk=instance.pk).only(
+        "returned_at",
+        "book_id"
+    ).first()
+
+    if not old_loan:
+        return
+
+    was_active = old_loan.returned_at is None
+    now_returned = instance.returned_at is not None
+
+    if was_active and now_returned:
+        Book.objects.filter(pk=old_loan.book_id).update(stock=F("stock") + 1)
+
+
+@receiver(pre_delete, sender=Loan)
+def restore_stock_when_active_loan_deleted(sender, instance, **kwargs):
+    """
+    admin에서 아직 반납되지 않은 Loan을 삭제하면
+    재고를 1 증가시킨다.
+    이미 반납된 Loan을 삭제할 때는 재고를 건드리지 않는다.
+    """
+    if instance.returned_at is None:
+        Book.objects.filter(pk=instance.book_id).update(stock=F("stock") + 1)

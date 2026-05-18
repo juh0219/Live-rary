@@ -111,8 +111,39 @@
 </style>
 
 <main class="container">
-  <section class="request-page">
-    <h1 class="page-title">대출 신청 리스트</h1>
+<h1 class="page-title">도서위원 책 관리</h1>
+
+<h2 class="page-title" style="font-size:20px; margin-top:0;">현재 대출 중인 도서</h2>
+
+<div class="request-list">
+  {% for loan in active_loans %}
+    <div class="request-card">
+      <div class="request-info">
+        <div class="book-title">
+          {{ loan.book.title }}
+        </div>
+        <div class="meta-line">대출자: {{ loan.user.first_name|default:loan.user.username }} / {{ loan.user.username }}</div>
+        <div class="meta-line">저자: {{ loan.book.author|default:"-" }}</div>
+        <div class="meta-line">청구기호: {{ loan.book.call_number|default:"-" }}</div>
+        <div class="meta-line">대출일: {{ loan.loaned_at|date:"Y-m-d" }}</div>
+        <div class="meta-line">현재 재고 수: {{ loan.book.stock }}</div>
+      </div>
+
+      <div class="request-actions">
+        <form method="post" action="{% url 'return_loan' loan.id %}">
+          {% csrf_token %}
+          <button class="action-btn complete-btn" type="submit">반납 완료</button>
+        </form>
+      </div>
+    </div>
+  {% empty %}
+    <div class="empty-box">
+      현재 대출 중인 도서가 없습니다.
+    </div>
+  {% endfor %}
+</div>
+
+<h2 class="page-title" style="font-size:20px; margin-top:28px;">대출 신청 리스트</h2>
 
     <div class="request-list">
       {% for req in loan_requests %}

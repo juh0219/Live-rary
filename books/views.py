@@ -400,10 +400,21 @@ def update_isbn_status(request):
 
 @user_passes_test(is_library_manager)
 def loan_request_list(request):
-    loan_requests = LoanRequest.objects.select_related("user", "book").order_by("-requested_at")
+    loan_requests = LoanRequest.objects.select_related(
+        "user",
+        "book"
+    ).order_by("-requested_at")
+
+    active_loans = Loan.objects.select_related(
+        "user",
+        "book"
+    ).filter(
+        returned_at__isnull=True
+    ).order_by("-loaned_at")
 
     return render(request, "accounts/loan_request_list.html", {
-        "loan_requests": loan_requests
+        "loan_requests": loan_requests,
+        "active_loans": active_loans,
     })
 
 @require_POST
@@ -469,4 +480,23 @@ def delete_loan_request(request, request_id):
     loan_request.delete()
 
     messages.success(request, "대출 신청을 삭제했습니다.")
+    return redirect("loan_request_list")
+
+@require_POST
+@user_passes_test(is_library_manager)
+@transaction.atomic
+def return_loan(request, loan_id):
+    loan = get_object_or_404(
+        Loan.objects.select_related("user", "book"),
+        pk=loan_id,
+        returned_at__isnull=True
+    )
+
+    loan.returned_at = timezone.now().date()
+    loan.save(update_fields=["returned_at"])
+
+    messages.success(
+        request,
+        f"{loan.user.username}님의 '{loan.book.title}' 반납을 완료 처리했습니다."
+    )
     return redirect("loan_request_list")

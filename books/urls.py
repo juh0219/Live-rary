@@ -14,6 +14,11 @@ urlpatterns = [
         views.delete_loan_request,
         name='delete_loan_request'
     ),
+    path(
+        'manager/loans/<int:loan_id>/return/',
+        views.return_loan,
+        name='return_loan'
+    ),
     path('<int:pk>/', views.book_detail, name='book_detail'),
     path('update-isbn-status/', views.update_isbn_status, name='update_isbn_status'),
 

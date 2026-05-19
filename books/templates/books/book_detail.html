@@ -460,7 +460,7 @@
               if (tagObj.key === 't1') {
                   params.set('t1', t);
               }
-              else if (currentT1 && currentT1 !== "None") {
+              else if (currentT1 && currentT1 !== "None" && tagObj.key !== 'st') {
                   params.set('t1', currentT1);
                   params.set(tagObj.key, t);
               } else {

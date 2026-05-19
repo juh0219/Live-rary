@@ -200,8 +200,8 @@ def book_list(request):
 
     tag_config = [
         ("우리나라 금융의 미래는?", {'t1': "⚪ 사회과학", 't2': "💰 경제", 't3': "💰 금융"}),
-        ("(전)R&E로봇 팀장 선배 추천 이상한 과학", {'t1': "🟡 기술과학", 't2': "💻 컴퓨터공학", 't3': "🖥️ 컴퓨터과학•AI"}),
-        ("(전)도서부장 선배의 인생 가이드", {'t1': "🟢 철학", 't2': "🕊️ 윤리•도덕"}),
+        ("정보관리부장 추천 분야", {'t1': "🟡 기술과학", 't2': "💻 컴퓨터공학", 't3': "🖥️ 컴퓨터과학•AI"}),
+        ("(전)도서부장 추천 도서", {'st': "📖 (전)도서부장 추천"}),
     ]
 
     tag_sections = []
@@ -210,6 +210,8 @@ def book_list(request):
         if 't1' in filters: section_qs = section_qs.filter(get_exact_tag_q('tag1', [filters['t1']]))
         if 't2' in filters: section_qs = section_qs.filter(get_exact_tag_q('tag2', filters['t2'].split(',')))
         if 't3' in filters: section_qs = section_qs.filter(get_exact_tag_q('tag3', filters['t3'].split(',')))
+        if 'st' in filters: section_qs = section_qs.filter(get_exact_tag_q('s_tag', [filters['st']]))
+        if 'gt' in filters: section_qs = section_qs.filter(get_exact_tag_q('g_tag', [filters['gt']]))
 
         pills = []
         query_params = []

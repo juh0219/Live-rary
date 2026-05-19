@@ -166,7 +166,21 @@ def book_search(request):
         except:
             continue
 
-    books = get_filtered_qs().distinct().order_by('-add_date', 'title')
+    books_qs = get_filtered_qs().distinct().order_by('-add_date', 'title')
+
+    # 한 페이지당 100개씩 분할
+    paginator = Paginator(books_qs, 100)
+    page_number = request.GET.get('page', 1)
+    books = paginator.get_page(page_number)  # 기존 템플릿 호환성을 위해 변수명 'books' 유지
+
+    context = {
+        'books': books,  # 이제 100개만 담긴 Page 객체가 전달됨
+        'available_tags': available_tags,
+        'date_tags': date_tags,
+        'active_tags': {**filters, 't1': t1, 'date': date_raw, 'add': add_raw},
+        'query': q or t1 or "필터 결과"
+    }
+    return render(request, 'books/book_search.html', context)
 
     context = {
         'books': books,
@@ -186,8 +200,8 @@ def book_list(request):
 
     tag_config = [
         ("우리나라 금융의 미래는?", {'t1': "⚪ 사회과학", 't2': "💰 경제", 't3': "💰 금융"}),
-        ("코기토 선배의 추천 문학", {'t1': "⚫ 문학"}),
-        ("코기토 선배의 인생 가이드", {'t2': "🩺 의학,🕊️ 윤리•도덕"}),
+        ("(전)R&E로봇 팀장 선배 추천 이상한 과학", {'t1': "🟡 기술과학", 't2': "💻 컴퓨터공학", 't3': "🖥️ 컴퓨터과학•AI"}),
+        ("(전)도서부장 선배의 인생 가이드", {'t1': "🟢 철학", 't2': "🕊️ 윤리•도덕"}),
     ]
 
     tag_sections = []
@@ -210,6 +224,7 @@ def book_list(request):
                 'title': display_title,
                 'books': section_books,
                 'pills': pills,
+                't1_value': filters.get('t1'),
                 'combined_query': "&".join(query_params),
                 'query_string': "&".join(query_params)
             })
@@ -235,7 +250,7 @@ def book_list(request):
     # (5) 출판 기간 지정
     # pub_year가 null이 아니고 2020 이상인 데이터
     year_books = Book.objects.filter(pub_year__isnull=False) \
-                     .filter(pub_year__range=(2010, 2013)) \
+                     .filter(pub_year__range=(1990, 1999)) \
                      .order_by('-pub_year', 'title')[:20]
 
     # (6) 새로 들어온 책
@@ -245,8 +260,20 @@ def book_list(request):
 
     user_author_books = []
     if request.user.is_authenticated:
+        # 1. 사용자 기준 이름 가져오기 (예: '김철수')
         name = request.user.first_name or request.user.username
-        user_author_books = Book.objects.filter(author__icontains=name).order_by('title')[:20]
+
+        # 기본 쿼리 조건 설정 (전체 이름이 포함된 경우)
+        query_condition = Q(author__icontains=name)
+
+        # 2. 이름이 2글자 이상인 경우, 맨 앞 글자(성)를 제외한 부분 추출 (예: '철수')
+        if name and len(name) > 1:
+            sub_name = name[1:]  # 슬라이싱으로 첫 글자 제거
+            # 성을 뺀 이름과 '완전히 일치'하는 조건 추가 (대소문자 구분 없음)
+            query_condition |= Q(author__iexact=sub_name)
+
+        # 3. 통합된 조건으로 DB 검색 수행
+        user_author_books = Book.objects.filter(query_condition).order_by('title')[:20]
 
     context = {
         'all_books': all_books,

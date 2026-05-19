@@ -10,10 +10,10 @@
   *, *::before, *::after { box-sizing: border-box; }
   :root{
     --pad:16px; --book-w:160px; --book-h:220px; --radius:20px;
-    --bg:#f7fff2; --border:#d7e6d0; --accent:#6a9d5d; --text:#111;
+    --bg:#f9f9f9; --border:#e0e0e0; --accent:#a7a7a7; --text:#111;
   }
   body{ margin:0; background:var(--bg); font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif; color:var(--text); line-height:1.4; }
-  header.header{ display:flex; align-items:center; justify-content:space-between; padding:14px var(--pad); }
+  header.header{ display:flex; align-items:center; justify-content:space-between; padding:14px var(--pad); padding-left: 20px; padding-right: 20px; }
   .brand a{ text-decoration:none; color:var(--text); font-weight:800; font-size:22px; letter-spacing:.3px; user-select:none; }
   .header-actions{ display:flex; align-items:center; gap:10px; }
   .login-btn{ border:1px solid var(--border); color: #111; text-decoration: none; background:#fff; height:36px; border-radius:10px; padding:0 12px; display:inline-flex; align-items:center; justify-content:center; font-weight:600; cursor:pointer; box-shadow:0 1px 2px rgba(0,0,0,.04); transition: background 0.2s }
@@ -49,7 +49,7 @@
       position: fixed;
       left: 50%;
       transform: translateX(-50%);
-      bottom: 24px; /* 기본 위치 */
+      bottom: 24px;
       display: flex;
       flex-direction: column;
       gap: 10px;
@@ -59,34 +59,30 @@
       pointer-events: none;
   }
 
-  /* book_detail의 하단 바가 있을 때만 위로 올림 */
   body:has(.bottom-bar) .flash-wrap {
       bottom: 85px;
   }
 
-  /* 2. 개별 알약 디자인 (기존 색감 유지 + 둥근 모양) */
   .flash {
       pointer-events: auto;
-      background: rgba(255, 255, 255, 0.95); /* 기존의 밝은 배경 유지 */
+      background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
-      color: var(--text); /* 기존 텍스트 색상 사용 */
-      padding: 13px 22px;
-      border-radius: 9999px; /* 완벽한 알약 모양 */
-      border: 1px solid var(--border); /* 기존 테두리 색상 사용 */
-      font-size: 14px;
+      color: var(--text);
+      padding: 13px 32px;
+      border-radius: 9999px;
+      border: 1px solid var(--border);
+      font-size: 15px;
       font-weight: 600;
-      box-shadow: 0 10px 12px rgba(0,0,0,0.08); /* OneUI 스타일의 부드러운 그림자 */
+      box-shadow: 0 10px 12px rgba(0,0,0,0.08);
       text-align: center;
   }
 
-  /* 메시지 타입별 포인트 색상 (선택 사항) */
   .flash-success{ border-color: rgba(106,157,93,.45); }
   .flash-error{ border-color: rgba(220,38,38,.45); }
   .flash-warning{ border-color: rgba(245,158,11,.55); }
   .flash-info{ border-color: rgba(59,130,246,.45); }
 
-  /* 자동 삭제 애니메이션을 위한 클래스 */
   .flash.fade-out {
     opacity: 0;
     transition: all 0.2s ease;
@@ -100,7 +96,9 @@
   <div class="header-actions">
     {% if user.is_authenticated %}
       <div style="display:flex; align-items:center; gap:10px;">
-        <span style="font-weight:600; font-size:15px;">{{ user.first_name }}님</span>
+        <a href="{% url 'my_page' %}" style="text-decoration: none;">
+          <span style="font-weight:600; cursor:pointer; font-size:15px; color: #111;">{{ user.first_name }} 님</span>
+        </a>
         <form method="post" action="{% url 'logout' %}" style="display:inline-block; margin:0;">
           {% csrf_token %}
           <button type="submit" class="login-btn">로그아웃</button>
@@ -111,7 +109,7 @@
     {% endif %}
    <a
   class="hamburger-btn"
-  aria-label="{% if user.is_authenticated and user.username == 'manager' %}대출 신청 리스트{% else %}내 대출 도서{% endif %}"
+  aria-label="{% if user.is_authenticated and user.username == 'manager' %}대출 신청 리스트{% else %}사용자 정보{% endif %}"
   href="{% if user.is_authenticated and user.username == 'manager' %}{% url 'loan_request_list' %}{% else %}{% url 'my_page' %}{% endif %}"
    >
   <span></span>
@@ -147,15 +145,13 @@
 </main>
 
 <script>
-// CSRF 토큰 획득 (AJAX용)
 function getCsrfToken() {
     return document.querySelector('[name=csrfmiddlewaretoken]')?.value ||
            document.cookie.split('; ').find(row => row.startsWith('csrftoken='))?.split('=')[1];
 }
 
-// DB 업데이트 요청 함수 (알고리즘 2, 3번 실행기)
+// ISBN Updater
 function updateBookIsbn(bookId, status) {
-    // 0~500ms 사이의 랜덤 지연을 주어 "데이터베이스 잠금" 현상을 방지합니다.
     const delay = Math.floor(Math.random() * 500);
 
     setTimeout(() => {
@@ -176,21 +172,18 @@ function updateBookIsbn(bookId, status) {
     }, delay);
 }
 
-// 통합 킬러 함수
 function bookCoverKiller(img) {
     if (!img || img.dataset.processed === "true") return;
 
     const bookId = img.dataset.bookId;
-    const isbnValue = img.dataset.isbn; // 템플릿에서 넘겨준 실제 isbn 값
+    const isbnValue = img.dataset.isbn;
 
-    // 알고리즘 2: isbn이 비어있는 경우 (이미지 태그는 생성됐으나 src가 없음)
     if (!isbnValue || isbnValue.trim() === "" || isbnValue === "None") {
         kill(img);
         updateBookIsbn(bookId, 'None');
         return;
     }
 
-    // 알고리즘 3: 로딩 성공했으나 교보 기본 표지(458x664)인 경우
     if (img.naturalWidth === 458 && img.naturalHeight === 664) {
         kill(img);
         updateBookIsbn(bookId, 'Basic');
@@ -204,37 +197,33 @@ function kill(img) {
     img.dataset.processed = "true";
 }
 
-// 이벤트 리스너
 document.addEventListener('load', (e) => {
     if (e.target.tagName === 'IMG' && e.target.dataset.bookId) {
         bookCoverKiller(e.target);
     }
 }, true);
 
-// 알고리즘 4: 로딩 실패 시 (DB 수정 없이 가림 상자만 표시)
 document.addEventListener('error', (e) => {
     if (e.target.tagName === 'IMG' && e.target.dataset.bookId) {
         kill(e.target);
     }
 }, true);
 
-// 초기 스캔 (이미 로드된 이미지 대응)
 function scan() {
     document.querySelectorAll('img[data-book-id]').forEach(bookCoverKiller);
 }
 window.addEventListener('load', scan);
 setTimeout(scan, 500);
 
+
+// Flash Animation
 document.addEventListener('DOMContentLoaded', () => {
   const flashes = document.querySelectorAll('.flash');
   flashes.forEach(f => {
-    // 3초 뒤에 사라짐
     setTimeout(() => {
       f.classList.add('fade-out');
-      setTimeout(() => f.remove(), 300); // 애니메이션 후 요소 제거
+      setTimeout(() => f.remove(), 300);
     }, 3000);
-
-    // 클릭하면 즉시 삭제
     f.onclick = () => f.remove();
   });
 });
@@ -242,34 +231,31 @@ document.addEventListener('DOMContentLoaded', () => {
 document.addEventListener('DOMContentLoaded', () => {
     const wrap = document.querySelector('.flash-wrap');
     if (!wrap) return;
-
-    // [핵심] 플래시를 사라지게 하는 공통 함수
     const startFadeOut = (el) => {
         setTimeout(() => {
             el.classList.add('fade-out');
-            setTimeout(() => el.remove(), 300); // transition 시간(0.2s)보다 조금 길게
-        }, 3000); // 3초 후 사라짐 시작
+            setTimeout(() => el.remove(), 300);
+        }, 3000);
     };
 
-    // 1. 페이지 로드 시점에 이미 존재하는 플래시 처리 (서버 메시지용)
     document.querySelectorAll('.flash').forEach(f => {
         f.onclick = () => f.remove();
         startFadeOut(f);
     });
 
-    // 2. sessionStorage에서 온 메시지 처리 (JS 이동용)
     const pendingMsg = sessionStorage.getItem('pending_flash');
     if (pendingMsg) {
         const pill = document.createElement('div');
-        pill.className = 'flash flash-error'; // 빨간색 알약
+        pill.className = 'flash flash-error';
         pill.textContent = pendingMsg;
         pill.onclick = () => pill.remove();
         wrap.appendChild(pill);
-        startFadeOut(pill); // 자동 삭제 예약
+        startFadeOut(pill);
         sessionStorage.removeItem('pending_flash');
     }
 });
 </script>
+
 
 {% block extra_js %}{% endblock %}
 

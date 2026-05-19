@@ -17,7 +17,6 @@
     cover: "https://contents.kyobobook.co.kr/sih/fit-in/458x0/pdt/{{ loan1.book.isbn }}.jpg",
     title: "{{ loan1.book.title|escapejs }}",
     author: "{{ loan1.book.author|default_if_none:''|escapejs }}",
-    published: "{{ loan1.book.pub_year|default_if_none:''|escapejs }}",
     isbn: "{{ loan1.book.isbn|default_if_none:''|escapejs }}",
     loanDate: "{{ loan1.loaned_at|date:'Y-m-d' }}"
     {% endif %}
@@ -28,7 +27,6 @@
     cover: "https://contents.kyobobook.co.kr/sih/fit-in/458x0/pdt/{{ loan2.book.isbn }}.jpg",
     title: "{{ loan2.book.title|escapejs }}",
     author: "{{ loan2.book.author|default_if_none:''|escapejs }}",
-    published: "{{ loan2.book.pub_year|default_if_none:''|escapejs }}",
     isbn: "{{ loan2.book.isbn|default_if_none:''|escapejs }}",
     loanDate: "{{ loan2.loaned_at|date:'Y-m-d' }}"
     {% endif %}
@@ -47,7 +45,6 @@
   .user-fields { font-size: 15px; display: flex; flex-direction: column; gap: 6px; }
   .user-label { font-weight: 700; }
 
-  /* 대출 슬롯 레이아웃 - 다시 상단 정렬로 복구 */
   .loan-slot {
     display: flex;
     align-items: flex-start;
@@ -59,14 +56,14 @@
     position: relative;
     width: calc(clamp(160px, 20vw, 260px) * 0.8333);
     aspect-ratio: 8/11;
-    border-radius: 20px; overflow: hidden; background: #eee;
+    border-radius: 20px; overflow: hidden; background: #e0e0e0;
     box-shadow: 0 2px 4px rgba(0,0,0,.05);
     flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
   }
 
   .fallback-title {
-    position: absolute; width: 100%; padding: 15px; text-align: center;
+    position: absolute; width: 100%; background: e0e0e0; padding: 15px; text-align: center;
     font-size: 16px; font-weight: 800; color: #555; z-index: 1;
     line-height: 1.4; word-break: keep-all; display: none;
   }
@@ -74,7 +71,6 @@
   .cover img { width: 100%; height: 100%; object-fit: cover; display: block; transition: filter .2s ease; position: relative; z-index: 2; }
   .cover::after { content: ""; position: absolute; inset: 0; background: rgba(255,255,255,.55); backdrop-filter: blur(2px); opacity: 0; transition: opacity .2s ease; z-index: 3; }
 
-  /* 오버레이 수정: 버튼을 정중앙에 배치 */
   .cover-overlay {
     position: absolute; inset: 0;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -82,11 +78,7 @@
   }
   .overlay-content {
     width: 100%; padding: 0 10px;
-    display: flex; flex-direction: column; align-items: center;
-  }
-  .overlay-content .meta-line {
-    font-size: 15px; text-shadow: 0 1px 2px rgba(0,0,0,.2); color:var(--text); text-align:left !important; color: #111; font-weight: 700; text-align: center;
-    line-height: 1.4; margin-bottom: 2px;
+    display: flex; flex-direction: column; align-items: center; gap:6px;
   }
 
   .cover:hover::after, .cover.touch-on::after { opacity: 1; }
@@ -113,12 +105,12 @@
   }
   .due-text.danger, .due-text.overdue { color: #dc2626; }
 
-  /* 책 보기 버튼 - 오버레이 내 중앙 정렬 */
   .view-btn {
-    margin-top: 10px; height: 32px; padding: 0 12px;
+    height: 32px; padding: 0 12px;
     border-radius: 10px; border: 1px solid var(--border);
-    background: #fff; font-weight: 600; font-size: 14px; cursor: pointer;
+    background: #fff; font-weight: 600; font-size: 14px; cursor: pointer; transition: background 0.2s; align-items: center;
   }
+  .view-btn:hover { background-color: #f8f9fa; }
 
   @media(max-width: 850px) {
     .user-layout { flex-direction: column; }
@@ -150,8 +142,6 @@
           <img id="loan1CoverImg" src="" alt="책 표지">
           <div class="cover-overlay">
             <div class="overlay-content">
-              <div class="meta-line" id="loan1PubText"></div>
-              <div class="meta-line" id="loan1IsbnText"></div>
               {% if loan1 %}<button class="view-btn" type="button" onclick="location.href='{% url 'book_detail' pk=loan1.book.pk %}'">책 보기</button>{% endif %}
             </div>
           </div>
@@ -172,8 +162,6 @@
           <img id="loan2CoverImg" src="" alt="책 표지">
           <div class="cover-overlay">
             <div class="overlay-content">
-              <div class="meta-line" id="loan2PubText"></div>
-              <div class="meta-line" id="loan2IsbnText"></div>
               {% if loan2 %}<button class="view-btn" type="button" onclick="location.href='{% url 'book_detail' pk=loan2.book.pk %}'">책 보기</button>{% endif %}
             </div>
           </div>
@@ -255,12 +243,6 @@
     } else {
       if (img) { img.style.display = 'block'; img.src = bookObj.cover; }
       if (fallback) fallback.style.display = 'none';
-      if (isbnEl) { isbnEl.textContent = `• ISBN: ${isbnVal}`; isbnEl.style.display = 'block'; }
-    }
-
-    if (pubEl) {
-      if (bookObj.published) { pubEl.textContent = `• 출판년도: ${bookObj.published}년`; pubEl.style.display = 'block'; }
-      else { pubEl.textContent = ""; pubEl.style.display = 'none'; }
     }
 
     if (dueEl && bookObj.loanDate) {

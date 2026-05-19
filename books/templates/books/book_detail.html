@@ -31,8 +31,6 @@
   *, *::before, *::after { box-sizing: border-box; }
   :root{
     --pad:16px;
-    --bg:#f7fff2;
-    --border:#d7e6d0;
     --accent:#6a9d5d;
     --text:#111;
     --title:42px;
@@ -57,7 +55,7 @@
     aspect-ratio:8/11;
     border-radius:20px;
     overflow:hidden;
-    background:#eee;
+    background:#e0e0e0;
     box-shadow:0 2px 4px rgba(0,0,0,.05);
     flex-shrink:0;
     display: flex;
@@ -69,12 +67,12 @@
     content:"";
     position:absolute;
     inset:0;
-    background:rgba(255,255,255,.4); /* 색상을 살짝 조절하면 더 예쁩니다 */
+    background:rgba(255,255,255,.4);
     backdrop-filter: blur(4px);
     opacity:0;
     transition:opacity .2s ease;
     z-index:3;
-    pointer-events: none; /* 클릭 방해 금지 */
+    pointer-events: none;
   }
   .cover-overlay{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; opacity:0; transition:opacity .2s ease; pointer-events:none; z-index:4;}
   .overlay-content{line-height:1.4; font-weight:800; max-width:85%; display:flex; flex-direction:column; gap:6px;}
@@ -125,7 +123,7 @@
   .tags{display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; justify-content:flex-start;}
   .tag{
     border:1px solid var(--border); border-radius:9999px;
-    padding:8px 12px; background:#fff; font-size:14px; font-weight: 600;
+    padding:6px 12px; background:#fff; font-size:13px; font-weight: 600;
     color: #444; text-decoration: none;
     box-shadow:0 1px 2px rgba(0,0,0,.03); transition: background 0.2s;
   }
@@ -194,15 +192,13 @@
 
   .review-list {
    margin-top: 14px;
-   display: grid; /* flex에서 grid로 변경 */
-   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); /* 최소 300px 너비로 빈칸 채움 */
-   gap: 16px; /* 카드 사이 간격 */
-   overflow-x: visible; /* 가로 스크롤 제거 */
+   display: grid;
+   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+   gap: 16px;
+   overflow-x: visible;
    }
 
-/* 2. 리뷰 카드 설정 변경 */
   .review-card {
-   /* flex: 0 0 320px; -> 이 줄을 삭제하거나 아래처럼 변경 */
    width: 100%;
    min-height: 120px;
    background: #fff;
@@ -224,24 +220,22 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 20px; /* 요소 간 최소 간격 */
+    gap: 20px;
   }
   .bottom-left {
       display: flex;
       align-items: center;
-      gap: 4px;      /* 제목과 좋아요 버튼 사이의 간격 */
-      flex: 1;       /* 왼쪽 전체가 남는 공간을 차지 */
+      gap: 4px;
+      flex: 1;
       min-width: 0;
   }
 
-  /* 2. 미니 제목: 버튼을 밀어내지 않고 옆에 붙도록 설정 */
   .title-mini {
       font-weight: 800;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      flex-shrink: 1;  /* 화면이 좁아지면 버튼을 밀지 않고 제목이 먼저 줄어듦 */
-      /* flex: 1 대신 flex-shrink를 사용해 버튼 쪽으로 밀착시킴 */
+      flex-shrink: 1;
   }
   .like-btn{flex-shrink: 0; width:36px; height:36px; border-radius:50%; border:1px solid #fff; background:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer;}
   .like-btn svg{width:22px; height:22px; stroke:var(--heart); fill:transparent; stroke-width:2; stroke-linecap:round; stroke-linejoin:round;}
@@ -253,7 +247,7 @@
       display: flex;
       align-items: center;
       gap: 8px;
-      flex-shrink: 0; /* 공간이 부족해도 너비가 줄어들지 않음 */
+      flex-shrink: 0;
       white-space: nowrap;
   }
 
@@ -271,12 +265,6 @@
       display: block !important;
     }
     .tags{display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; justify-content:flex-start;}
-    .tag{
-      border:1px solid var(--border); border-radius:9999px;
-      padding:6px 12px; background:#fff; font-size:13px; font-weight: 600;
-      color: #444; text-decoration: none;
-      box-shadow:0 1px 2px rgba(0,0,0,.03); transition: background 0.2s;
-    }
     .author{ font-size:18px; text-align:center; margin:0; width: 100%; margin-top: 4px; }
     .tags{ justify-content:center; gap: 10px; width:100%; margin-top: 12px; }
   }
@@ -285,7 +273,7 @@
 <main class="container">
   <section class="book-hero">
     <div class="cover" id="bookCover">
-      <div class="fallback-title" style="position: absolute; width: 100%; padding: 20px; text-align: center; font-size: 20px; font-weight: 800; color: #555; z-index: 1; line-height: 1.4; word-break: keep-all;">
+      <div class="fallback-title" style="position: absolute; background: #e0e0e0; width: 100%; padding: 20px; text-align: center; font-size: 20px; font-weight: 800; color: #555; z-index: 1; line-height: 1.4; word-break: keep-all;">
         {{ book.title }}
       </div>
 
@@ -433,7 +421,6 @@
   }
 
   (function(){
-    // [중요] base.html의 중앙 엔진이 이미지를 감시하므로 onload/onerror 로직 제거
     document.getElementById('bookTitle').textContent = BOOK.title;
     document.getElementById('authorName').textContent = BOOK.author;
     document.getElementById('miniTitle').textContent = BOOK.title;
@@ -443,13 +430,13 @@
   if (tagsWrap) {
       tagsWrap.innerHTML = "";
 
-      /* Django 템플릿에서 넘겨준 데이터를 기반으로
-         각 태그가 t1인지, gt인지 등을 판단하는 로직이 필요합니다.
-         여기서는 순서대로 t1, t2, t3, gt, st라고 가정하거나
-         데이터 자체에 태그 타입을 포함시키는 방식을 사용합니다.
-      */
+      const rawT1 = "{{ book.tag1|escapejs }}".trim();
 
-      // Django 변수를 JS 배열로 안전하게 가져오기 (예시 순서: t1, t2, t3, gt, st)
+      let currentT1 = rawT1;
+      if (rawT1.includes(',')) {
+          currentT1 = rawT1.split(',')[0].trim();
+      }
+
       const tagValues = [
           { key: 't1', val: "{{ book.tag1|escapejs }}" },
           { key: 't2', val: "{{ book.tag2|escapejs }}" },
@@ -459,19 +446,28 @@
       ];
 
       tagValues.forEach(tagObj => {
-          if (!tagObj.val) return; // 값이 없으면 건너뜀
+          if (!tagObj.val) return;
 
-          // 한 필드에 여러 태그가 쉼표로 저장되어 있을 수 있으므로 분리
           const individualTags = tagObj.val.split(',').map(t => t.trim()).filter(t => t !== "");
 
           individualTags.forEach(t => {
               const tagAnchor = document.createElement('a');
               tagAnchor.className = 'tag';
-              tagAnchor.textContent = t; // 화면 표시 (#은 CSS에서 넣거나 앞에 붙여주세요)
+              tagAnchor.textContent = t;
 
-              // [핵심] 해당 태그의 타입(key)에 맞춰 쿼리 스트링 생성
-              // 예: /books/?t1=🔴 예술
-              tagAnchor.href = `/books/?${tagObj.key}=${encodeURIComponent(t)}`;
+              const params = new URLSearchParams();
+
+              if (tagObj.key === 't1') {
+                  params.set('t1', t);
+              }
+              else if (currentT1 && currentT1 !== "None") {
+                  params.set('t1', currentT1);
+                  params.set(tagObj.key, t);
+              } else {
+                  params.set(tagObj.key, t);
+              }
+
+              tagAnchor.href = `/books/?${params.toString()}`;
 
               tagsWrap.appendChild(tagAnchor);
           });
@@ -488,13 +484,10 @@
            isbnEl.textContent = '';
         }
 
-        // [추가] 즉시 플래시 메시지를 화면에 띄우는 함수
-// 즉시 플래시 메시지를 화면에 띄우는 함수
     const showFlash = (msg, type = 'error') => {
         const wrap = document.querySelector('.flash-wrap');
         if (!wrap) return;
 
-        // [추가] 기존에 떠 있는 모든 플래시를 즉시 제거 (누적 방지)
         const oldFlashes = wrap.querySelectorAll('.flash');
         oldFlashes.forEach(old => old.remove());
 
@@ -502,14 +495,12 @@
         pill.className = `flash flash-${type}`;
         pill.textContent = msg;
 
-        // 클릭 시 삭제
         pill.onclick = () => pill.remove();
 
         wrap.appendChild(pill);
 
-        // 3초 후 자동 삭제 로직
         setTimeout(() => {
-            if (pill.parentElement) { // 이미 클릭해서 지워진 경우가 아닐 때만 실행
+            if (pill.parentElement) {
                 pill.classList.add('fade-out');
                 setTimeout(() => pill.remove(), 300);
             }
@@ -526,22 +517,18 @@
         likeBtn.classList.toggle('liked', !!BOOK.userLiked);
 
         likeBtn.addEventListener('click', async () => {
-          // loginRequired 함수가 이동까지 책임지도록 순서를 보장합니다.
     const loginRequired = () => {
         sessionStorage.setItem('pending_flash', '로그인이 필요합니다.');
         window.location.href = "/accounts/login/?next=" + window.location.pathname;
     };
 
-    // 적용 부분 (좋아요)
     likeBtn.addEventListener('click', async () => {
-      if (!BOOK.isLoggedIn) return loginRequired(); // 여기서 바로 함수 실행
-      // ... 생략
+      if (!BOOK.isLoggedIn) return loginRequired();
     });
 
-    // 적용 부분 (평론 남기기)
     if(openReview) {
       openReview.onclick = () => {
-        if(!BOOK.isLoggedIn) return loginRequired(); // 여기서 바로 함수 실행
+        if(!BOOK.isLoggedIn) return loginRequired();
         document.getElementById('reviews').classList.add('input-open');
       };
     }
@@ -564,13 +551,12 @@
       };
     }
 
-// [수정] 평론 등록 로직
     const sendBtn = document.getElementById('sendReview');
     const reviewInputEl = document.getElementById('reviewInput');
 
     if(sendBtn){
       sendBtn.onclick = async (e) => {
-        if (e) e.preventDefault(); // 기본 동작 방지
+        if (e) e.preventDefault();
 
         const txt = reviewInputEl.value.trim();
         const checkedRating = document.querySelector('input[name="rating"]:checked');
@@ -597,12 +583,11 @@
       };
     }
 
-    // [핵심] 엔터 키 이벤트 리스너 - stopPropagation으로 외부 클릭 이벤트와 분리
     if (reviewInputEl) {
       reviewInputEl.addEventListener('keydown', function(e) {
         if (e.key === 'Enter' && !e.isComposing) {
           e.preventDefault();
-          e.stopPropagation(); // 중요: 평론창이 닫히는 외부 클릭 이벤트를 방해하지 않도록 차단
+          e.stopPropagation();
 
           if (sendBtn) {
             sendBtn.click();
@@ -613,7 +598,6 @@
 
     document.addEventListener('click', (e) => {
     const reviewsEl = document.getElementById('reviews');
-    // '평론 남기기' 버튼도 예외 처리에 추가해야 닫히지 않습니다.
     if(!e.target.closest('#reviewInputRow') && !e.target.closest('#openReview')) {
         reviewsEl.classList.remove('input-open');
         }

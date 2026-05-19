@@ -4,7 +4,6 @@
 {% block title %}Liverary | 검색 결과{% endblock %}
 
 {% block search_bar %}
-  {# q가 없고 t1이 있을 때만 태그 상자 노출 #}
   {% if not request.GET.q and request.GET.t1 %}
   <div class="tag-selector-box">
     <div class="tag-section">
@@ -66,7 +65,6 @@
 
 {% block content %}
 <style>
-    /* [복구] 기존 미디어 쿼리 및 그리드 로직 100% 원상복구 */
     .search-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
@@ -74,20 +72,18 @@
         padding: 0 var(--pad);
         margin-top: 20px;
     }
-    /* 이 부분이 사라졌던 미디어 쿼리입니다 */
     @media (min-width: 650px) and (max-width: 700px) { .search-grid { grid-template-columns: repeat(4, 1fr) !important; } }
     @media (max-width: 520px) { .search-grid { grid-template-columns: repeat(3, 1fr) !important; } }
     @media (max-width: 375px) { .search-grid { grid-template-columns: repeat(2, 1fr) !important; } }
 
-    .section-title { font-size: 20px; font-weight: 800; margin: 20px var(--pad); text-align: left; }
+    .section-title { font-size: 19px; padding: 0 !important; font-weight: 800; margin: 20px var(--pad); margin-top: 0px !important; margin-left: 20px !important; text-align: left; }
     .search-item { text-decoration: none; color: inherit; display: flex; flex-direction: column; position: relative; transform-origin: center top; transition: transform .4s ease; }
-    .search-item .box { width: 100% !important; height: auto !important; aspect-ratio: 3 / 4.2 !important; border-radius: 12px; overflow: hidden; background: #eee; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .search-item .box { width: 100% !important; height: auto !important; aspect-ratio: 3 / 4.2 !important; border-radius: 12px; overflow: hidden; background: #e0e0e0; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
     .search-item .box img { width: 100% !important; height: 100% !important; object-fit: cover !important; display: block !important; }
     .search-item .title { margin-top: 10px; font-size: 14px; font-weight: 600; line-height: 1.3; height: 2.6em; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-align: center; transition: opacity .4s ease; }
     .search-item:hover { z-index: 10; transform: scale(1.1); transition-delay: 1s; }
     .search-item:hover .title { opacity: 0; transition-delay: 1s; }
 
-    /* 태그 선택 상자 스타일 */
     .tag-selector-box { background: #fff; border: 1px solid var(--border); border-radius: 20px; margin: 0 var(--pad) 20px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
     .tag-section { display: flex; align-items: center; border-bottom: 1px solid #edf2ec; padding: 12px 40px 12px 12px; position: relative; }
     .tag-section.no-border { border-bottom: none; }
@@ -102,9 +98,36 @@
     .tag-pill:hover { background-color: #f8f9fa; }
     .tag-pill.active { background: var(--accent) !important; color: #fff !important; border-color: var(--accent) !important; }
 
-    .expand-triangle { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--accent); cursor: pointer; transition: transform 0.3s; z-index: 5; }
+    .expand-triangle { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #a7a7a7; cursor: pointer; transition: transform 0.3s; z-index: 5; }
     .pill-container.expanded .pill-track { flex-wrap: wrap; white-space: normal; cursor: default; }
     .pill-container.expanded .expand-triangle { transform: translateY(-50%) rotate(180deg); }
+    .more-btn-wrapper {
+        text-align: center;
+        margin: 32px 0;
+        width: 100%;
+      }
+      #load-more-btn {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        color: var(--text);
+        padding: 13px 32px;
+        border-radius: 9999px;
+        border: 1px solid var(--border);
+        font-size: 15px;
+        font-weight: 600;
+        box-shadow: 0 10px 12px rgba(0,0,0,0.08);
+        text-align: center;
+        transition: background 0.2s;
+      }
+      #load-more-btn:hover {
+        background-color: #f8f9fa;
+      }
+      #load-more-btn:disabled {
+        background-color: #f8f9fa;
+        cursor: not-allowed;
+        transform: none;
+      }
 </style>
 
 <h3 class="section-title">
@@ -114,22 +137,20 @@
     {% elif request.GET.add and ',' in request.GET.add %}등록일 범위 검색
     {% elif request.GET.date and ',' in request.GET.date %}지정 날짜 범위 검색
     {% else %} 검색 결과 {% endif %}
-    ({{ books|length }}권)
+    ({{ books.paginator.count }}권)
 </h3>
 
-<div class="search-grid">
+<div class="search-grid" id="book-container">
   {% if books %}
     {% for book in books %}
       <a href="{% url 'book_detail' pk=book.pk %}" class="search-item">
-        <div class="box" style="position: relative; display: flex; align-items: center; justify-content: center; background: #eee;">
+        <div class="box" style="position: relative; display: flex; align-items: center; justify-content: center; background: #e0e0e0;">
             <div class="fallback-title" style="position: absolute; width: 100%; padding: 12px; text-align: center; font-size: 13px; font-weight: 800; color: #555; z-index: 1; line-height: 1.4; word-break: keep-all;">
                 {{ book.title }}
             </div>
 
-            {# 알고리즘 1: 이미 'None'이나 'Basic'으로 판명된 경우 이미지 태그 생성 안함 (DB 수정 X) #}
             {% if book.isbn == 'None' or book.isbn == 'Basic' %}
                 {% else %}
-                {# 알고리즘 2, 3, 4 판별을 위한 이미지 로딩 시도 #}
                 <img src="https://contents.kyobobook.co.kr/sih/fit-in/458x0/pdt/{{ book.isbn }}.jpg"
                     data-book-id="{{ book.id }}"
                     data-isbn="{{ book.isbn|default:'' }}"
@@ -145,8 +166,15 @@
   {% endif %}
 </div>
 
+{% if books.has_next %}
+<div class="more-btn-wrapper">
+  <button id="load-more-btn" data-next-page="{{ books.next_page_number }}">
+    더 보기
+  </button>
+</div>
+{% endif %}
+
 <script>
-  // [복구] 이미지 킬러 로직
   function applyKiller(img) {
     if (!img) return;
 
@@ -155,18 +183,15 @@
     const isNoSrc = !img.getAttribute('src') || img.getAttribute('src') === "";
 
     if (isBadSize || isFailed || isNoSrc) {
-      // 이미지를 완전히 숨겨서 뒤의 fallback-title이 보이게 함
       img.style.opacity = "0";
       img.style.display = "none";
       img.setAttribute('data-killed', 'true');
     } else if (img.naturalWidth > 0) {
-      // 정상 이미지일 경우 확실히 보이게 처리
       img.style.opacity = "1";
       img.style.display = "block";
     }
   }
 
-  // 1. 이벤트 리스너 (실시간 로딩 대응)
   document.addEventListener('load', function (e) {
     if (e.target.tagName.toLowerCase() === 'img') applyKiller(e.target);
   }, true);
@@ -175,10 +200,8 @@
     if (e.target.tagName.toLowerCase() === 'img') applyKiller(e.target);
   }, true);
 
-  // 2. 전수 조사 (캐시 및 초기 로드 대응)
   function runKillerScan() {
     document.querySelectorAll('.box img').forEach(img => {
-      // 이미 처리된 건 건너뜀
       if (img.getAttribute('data-killed') === 'true') return;
 
       if (img.complete) {
@@ -187,10 +210,9 @@
     });
   }
 
-  // 페이지 로드 단계별로 실행해서 빈틈 차단
   runKillerScan();
   setTimeout(runKillerScan, 100);
-  setTimeout(runKillerScan, 500); // 교보 서버 응답 지연 대응
+  setTimeout(runKillerScan, 500);
   window.addEventListener('load', runKillerScan);
 
   function toggleExpand(btn) { btn.closest('.pill-container').classList.toggle('expanded'); }
@@ -238,27 +260,70 @@
   window.addEventListener('load', () => { document.querySelectorAll('.box img').forEach(applyKiller); });
 
   document.addEventListener('DOMContentLoaded', function() {
+    const loadMoreBtn = document.getElementById('load-more-btn');
+    const bookContainer = document.getElementById('book-container');
+
+    if (loadMoreBtn && bookContainer) {
+      loadMoreBtn.addEventListener('click', function() {
+        const nextPage = loadMoreBtn.dataset.nextPage;
+        if (!nextPage) return;
+
+        const currentUrl = new URL(window.location.href);
+        currentUrl.searchParams.set('page', nextPage);
+
+        loadMoreBtn.textContent = '불러오는 중...';
+        loadMoreBtn.disabled = true;
+
+        // 비동기 요청 발생
+        fetch(currentUrl)
+          .then(response => response.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+
+            const newItems = doc.querySelectorAll('#book-container > *');
+
+            newItems.forEach(item => {
+              bookContainer.appendChild(item);
+            });
+
+            const nextBtnData = doc.getElementById('load-more-btn');
+            if (nextBtnData) {
+              loadMoreBtn.dataset.nextPage = nextBtnData.dataset.nextPage;
+              loadMoreBtn.textContent = '더 보기';
+              loadMoreBtn.disabled = false;
+            } else {
+              loadMoreBtn.parentElement.remove();
+            }
+          })
+          .catch(err => {
+            console.error('도서를 불러오는 중 오류 발생:', err);
+            loadMoreBtn.textContent = '더 보기';
+            loadMoreBtn.disabled = false;
+          });
+      });
+    }
+  });
+
+  document.addEventListener('DOMContentLoaded', function() {
       const tracks = document.querySelectorAll('.pill-track');
 
       tracks.forEach(track => {
           let isDragging = false;
           let startX = 0;
 
-          // 1. 마우스를 누를 때 초기 위치 저장
           track.addEventListener('mousedown', (e) => {
               isDragging = false;
               startX = e.pageX;
           });
 
-          // 2. 마우스를 움직일 때 10px 이상 이동하면 드래그로 간주
           track.addEventListener('mousemove', (e) => {
               if (Math.abs(e.pageX - startX) > 10) {
                   isDragging = true;
               }
           });
 
-          // 3. 클릭 이벤트가 발생할 때 드래그 상태라면 이벤트를 즉시 중단
-          // 'true'를 인자로 주어 캡처링 단계에서 먼저 가로챕니다.
+
           track.addEventListener('click', (e) => {
               if (isDragging) {
                   e.preventDefault();

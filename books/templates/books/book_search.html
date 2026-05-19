@@ -4,6 +4,20 @@
 {% block title %}Liverary | 검색 결과{% endblock %}
 
 {% block search_bar %}
+  {% if request.GET.q %}
+    <div class="search-wrap">
+      <form method="GET" action="{% url 'book_list' %}" class="search-bar">
+        <input type="text" name="q" class="search-input" placeholder="창녕옥야고 도서관 검색..." value="{{ query|default:'' }}" />
+        <button type="submit" class="search-btn" aria-label="검색">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="7"></circle>
+            <line x1="16.65" x2="21" y1="16.65" x2="21"></line>
+          </svg>
+        </button>
+      </form>
+    </div>
+  {% endif %}
+
   {% if not request.GET.q and request.GET.t1 %}
   <div class="tag-selector-box">
     <div class="tag-section">

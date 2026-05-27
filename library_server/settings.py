@@ -11,6 +11,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "개발용-임시-secret-key")
 DEBUG = os.environ.get("DEBUG", "False") == "True"
 ALLOWED_HOSTS = [
     ".onrender.com",
+    "liverary.kro.kr",
     "localhost",
     "127.0.0.1",
 ]
@@ -90,5 +91,6 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://*.onrender.com"
+    "https://*.onrender.com",
+    "https://liverary.kro.kr",
 ]

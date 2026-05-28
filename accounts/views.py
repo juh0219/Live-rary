@@ -13,17 +13,14 @@ class SignUpView(CreateView):
     template_name = 'registration/signup.html'
 
     def form_valid(self, form):
-        response = super().form_valid(form)  # 여기서 User 저장됨
+        # 1. 폼을 통해 User 객체를 안전하게 먼저 저장 (username, first_name, email 자동 저장됨)
+        response = super().form_valid(form)
         user = self.object
 
-        # 이름 저장
-        user.first_name = form.cleaned_data.get("first_name", "")
-        user.save(update_fields=["first_name"])
-
-        # 도서관 번호 저장
+        # 2. 학번(username)을 학생증 도서관 번호(library_code)로 연동하여 Profile 생성
         Profile.objects.create(
             user=user,
-            library_code=form.cleaned_data.get("library_code", "")
+            library_code=user.username  # 학번 데이터 그대로 입력
         )
         return response
 

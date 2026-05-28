@@ -4,7 +4,14 @@
 
 {% block content %}
 <style>
-  .login-page{min-height:calc(100vh - 70px);display:flex;justify-content:center;align-items:center;padding:40px var(--pad);}
+  .login-page{
+    min-height: calc(100vh - 360px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 80px var(--pad) 0px var(--pad);
+  }
   .login-section{width:100%;max-width:420px;display:flex;flex-direction:column;align-items:center;}
   .login-title{font-size:1.8rem;font-weight:800;margin:0 0 24px 0;text-align:center;}
   .login-form{width:100%;max-width:360px;display:flex;flex-direction:column;gap:12px;}
@@ -13,8 +20,21 @@
   .login-field input:focus{box-shadow:0 0 0 2px rgba(189,189,189,0.2);border-color:var(--accent);}
   .login-actions{margin-top:8px;width:100%;display:flex;justify-content:flex-end;}
   .login-submit{padding:10px 22px;border-radius:999px;border:1px solid var(--border);background:#111;color:#fff;font-size:.95rem;font-weight:600;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,0.04);}
-  .form-error{width:100%;max-width:360px;margin:0 0 10px 0;padding:10px 14px;background:#fff;border:1px solid #f2b8b8;border-radius:12px;color:#b91c1c;font-weight:700;font-size:14px;}
 </style>
+
+{% if form.errors %}
+  <div class="flash-wrap">
+    {% for field in form %}
+      {% for error in field.errors %}
+        <div class="flash flash-error">{{ error }}</div>
+      {% endfor %}
+    {% endfor %}
+
+    {% for error in form.non_field_errors %}
+      <div class="flash flash-error">{{ error }}</div>
+    {% endfor %}
+  </div>
+{% endif %}
 
 <main class="container login-page">
   <section class="login-section" id="loginSection">
@@ -23,21 +43,16 @@
     <form class="login-form" method="post">
       {% csrf_token %}
 
-      {% if form.errors %}
-        <div style="width:100%; max-width:360px;">
-          {% for field in form %}
-            {% for error in field.errors %}
-              <div class="flash flash-error">{{ error }}</div>
-            {% endfor %}
-          {% endfor %}
-          {% for error in form.non_field_errors %}
-            <div class="flash flash-error">{{ error }}</div>
-          {% endfor %}
-        </div>
-      {% endif %}
+      <div class="login-field">
+        <input type="text" name="username" placeholder="학번(5자리)" required value="{{ form.username.value|default:'' }}">
+      </div>
 
       <div class="login-field">
-        <input type="text" name="username" placeholder="학번(아이디)" required value="{{ form.username.value|default:'' }}">
+        <input type="text" name="first_name" placeholder="이름" required value="{{ form.first_name.value|default:'' }}">
+      </div>
+
+      <div class="login-field">
+        <input type="email" name="email" placeholder="이메일 주소" required value="{{ form.email.value|default:'' }}">
       </div>
 
       <div class="login-field">

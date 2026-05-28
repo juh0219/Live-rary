@@ -9,6 +9,7 @@
   const USER = {
     name: "{{ user_obj.first_name|default_if_none:''|escapejs }}",
     studentId: "{{ user_obj.username|escapejs }}",
+    email: "{{ user_obj.email|default:"없음" }}",
     school: "창녕옥야고등학교"
   };
 
@@ -130,6 +131,7 @@
       <div class="user-fields">
         <div><span class="user-label">• 이름:</span> <span id="userName"></span></div>
         <div><span class="user-label">• 학번:</span> <span id="userStudentId"></span></div>
+        <div><span class="user-label">• 이메일:</span> <span id="userEmail"></span></div>
         <div><span class="user-label">• 학교:</span> <span id="userSchool"></span></div>
       </div>
     </div>
@@ -259,6 +261,7 @@
   (function() {
     document.getElementById('userName').textContent = USER.name || "사용자";
     document.getElementById('userStudentId').textContent = USER.studentId || "";
+    document.getElementById('userEmail').textContent = USER.email || "";
     document.getElementById('userSchool').textContent = USER.school || "";
     renderLoan(1, BOOK1);
     renderLoan(2, BOOK2);

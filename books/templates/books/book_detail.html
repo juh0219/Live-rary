@@ -269,7 +269,16 @@
     .tags{ justify-content:center; gap: 10px; width:100%; margin-top: 12px; }
   }
 </style>
-
+{% block content %}
+<style>
+  .main-footer {
+    display: none !important;
+  }
+  body {
+    padding-bottom: 0 !important; /* base.html에서 푸터 때문에 잡았던 바닥 여백도 제거 */
+  }
+</style>
+{% endblock %}
 <main class="container">
   <section class="book-hero">
     <div class="cover" id="bookCover">

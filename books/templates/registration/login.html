@@ -8,11 +8,12 @@
 {% block content %}
 <style>
   .login-page{
-    min-height:calc(100vh - 70px);
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    padding:40px var(--pad);
+    min-height: calc(100vh - 360px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 80px var(--pad) 0px var(--pad);
   }
 
   .login-section{
@@ -126,7 +127,7 @@
           type="text"
           name="username"
           autocomplete="username"
-          placeholder="학번"
+          placeholder="학번(5자리)"
           value="{{ form.username.value|default_if_none:'' }}"
           required
         />
@@ -149,7 +150,7 @@
     </form>
 
     <div class="login-help">
-      <a href="#" id="signup-link" style="cursor: pointer;">회원가입</a>
+      <a href="{% url 'signup' %}">회원가입</a>
       <a href="{% url 'password_reset' %}">비밀번호 재설정</a>
     </div>
   </section>
@@ -167,6 +168,7 @@
 
         const flashWrap = document.querySelector('.flash-wrap');
         if (flashWrap) {
+          
           const existInfo = flashWrap.querySelector('.flash-info');
           if (existInfo) existInfo.remove();
 
@@ -201,7 +203,6 @@
     {% endif %}
 
   });
-
 
   (function(){
     const headerLoginBtn = document.getElementById('headerLoginBtn');

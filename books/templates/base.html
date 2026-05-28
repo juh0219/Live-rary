@@ -12,7 +12,19 @@
     --pad:16px; --book-w:160px; --book-h:220px; --radius:20px;
     --bg:#f9f9f9; --border:#e0e0e0; --accent:#a7a7a7; --text:#111;
   }
-  body{ margin:0; background:var(--bg); font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif; color:var(--text); line-height:1.4; }
+  html {
+    position: relative;
+    min-height: 100%;
+    margin: 0;
+  }
+  body{
+    margin: 0;
+    background:var(--bg);
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    color:var(--text);
+    line-height:1.4;
+    padding-bottom: 230px;
+  }
   header.header{ display:flex; align-items:center; justify-content:space-between; padding:14px var(--pad); padding-left: 20px; padding-right: 20px; }
   .brand a{ text-decoration:none; color:var(--text); font-weight:800; font-size:22px; letter-spacing:.3px; user-select:none; }
   .header-actions{ display:flex; align-items:center; gap:10px; }
@@ -42,7 +54,12 @@
   .book:hover .box{ box-shadow:0 4px 8px rgba(0,0,0,.1); filter:brightness(1.06); }
   .book:hover{ transition-delay:1s; transform:scale(1.1); }
   .book:hover .title{ transition-delay:1s; opacity:0; }
-  main.main-content { margin: 0 !important; padding: 0 !important; }
+  main.main-content {
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100%;
+  }
   a.hamburger-btn { text-decoration:none; color:inherit; }
 
   .flash-wrap {
@@ -143,6 +160,152 @@
   {% block content %}
   {% endblock content %}
 </main>
+
+<footer class="main-footer">
+  <div class="footer-container">
+
+    <div class="footer-links-grid">
+      <div class="footer-brand-column">
+        <h2 class="footer-logo">Liverary</h2>
+        <p class="footer-tagline">이 사이트는 창녕옥야고등학교 도서관을 직접 전산화하여 학교 도서관의 시공간적 제약을 극복하는 'Liverary' 프로젝트의 일부입니다.</p>
+      </div>
+
+      <div class="footer-link-group">
+        <h3>문의 & 버그 제보</h3>
+        <span class="footer-text-info">이메일: <a href="mailto:support@live-rary.xyz" class="email-link">support@live-rary.xyz</a></span>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p class="copyright">&copy; 2026. 김동현(3401) & 전유현(3418). All Rights Reserved.</p>
+      <div class="footer-meta-info">
+        <span>개발: 정보관리부장 & (전)도서부장</span>
+      </div>
+    </div>
+
+  </div>
+</footer>
+
+<style>
+  .main-footer {
+    width: 100%;
+    background-color: #e0e0e0;
+    color: #333;
+    font-size: 14px;
+    padding: 35px 0 25px 0;
+    margin-top: 60px;
+    font-family: system-ui, -apple-system, sans-serif;
+    box-sizing: border-box;
+    height: auto;
+  }
+
+  .footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 var(--pad, 16px);
+    box-sizing: border-box;
+  }
+
+  .footer-links-grid {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 32px;
+    margin-bottom: 25px;
+  }
+
+  .footer-brand-column {
+    flex: 1;
+    min-width: 240px;
+  }
+
+  .footer-logo {
+    font-size: 1.3rem;
+    font-weight: 800;
+    margin: 0 0 8px 0;
+    color: #111;
+  }
+
+  .footer-tagline {
+    color: #555;
+    font-size: 13px;
+    margin: 0;
+  }
+
+  .footer-link-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 140px;
+  }
+
+  .footer-link-group h3 {
+    font-size: 14px;
+    font-weight: 700;
+    margin: 0 0 6px 0;
+    color: #222;
+  }
+
+  .footer-text-info {
+    color: #444;
+    font-size: 13px;
+  }
+
+  .email-link {
+    color: #111 !important;
+    font-weight: 600;
+    text-decoration: none !important;
+  }
+  .email-link:hover {
+    text-decoration: underline !important;
+  }
+
+  .footer-link-group a {
+    color: #444;
+    text-decoration: none;
+    transition: color 0.15s ease, text-decoration 0.15s ease;
+    width: fit-content;
+  }
+
+  .footer-link-group a:hover {
+    color: #111;
+    text-decoration: underline;
+  }
+
+  .footer-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    color: #555;
+    font-size: 13px;
+    padding-top: 15px;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+  }
+
+  .footer-bottom p {
+    margin: 0;
+  }
+
+  .footer-meta-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  @media (max-width: 768px) {
+    .footer-links-grid {
+      flex-direction: column;
+      gap: 24px;
+    }
+    .footer-bottom {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+    }
+  }
+</style>
 
 <script>
 function getCsrfToken() {

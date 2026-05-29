@@ -14,22 +14,6 @@ from django.core.paginator import Paginator
 
 from .models import Book, Review, Loan, LoanRequest
 
-TURNSTILE_SECRET_KEY = os.environ.get("TURNSTILE_SECRET_KEY")
-
-def verify_turnstile(token):
-    url = "https://challenges.cloudflare.com/turnstile/v0/siteverify"
-    payload = {
-        "secret": TURNSTILE_SECRET_KEY,
-        "response": token
-    }
-    
-    try:
-        response = requests.post(url, data=payload).json()
-        return response.get("success", False)
-    except Exception as e:
-        print(f"인증 에러: {e}")
-        return False
-
 # --- 유틸리티 함수 ---
 
 def get_exact_tag_q(field_name, tag_list):

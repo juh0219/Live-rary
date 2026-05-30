@@ -229,7 +229,7 @@ def book_list(request):
                 'query_string': "&".join(query_params)
             })
 
-    all_books = Book.objects.all().order_by('title')[:50]
+    all_books = Book.objects.all().order_by('title')[:20]
     # 추천 섹션 (캐싱 없이 간단히 구현)
     all_pks = list(Book.objects.values_list('id', flat=True))
     random_books = []
@@ -240,12 +240,12 @@ def book_list(request):
 
     like_books = Book.objects.annotate(num_likes=Count('liked_users')) \
                      .filter(num_likes__gte=1) \
-                     .order_by('-num_likes')[:20]
+                     .order_by('-num_likes')[:10]
 
     # (4) 평론이 많은 화제의 도서 (리뷰 3개 이상)
     review_books = Book.objects.annotate(num_reviews=Count('reviews')) \
                        .filter(num_reviews__gte=3) \
-                       .order_by('-num_reviews')[:20]
+                       .order_by('-num_reviews')[:10]
 
     # (5) 출판 기간 지정
     # pub_year가 null이 아니고 2020 이상인 데이터
@@ -256,7 +256,7 @@ def book_list(request):
     # (6) 새로 들어온 책
     recent_books = Book.objects.filter(add_date__isnull=False) \
                        .filter(add_date__range=["2025-01-01", "2026-12-31"]) \
-                       .order_by('-add_date', 'title')[:20]
+                       .order_by('-add_date', 'title')[:10]
 
     user_author_books = []
     if request.user.is_authenticated:
